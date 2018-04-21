@@ -10,19 +10,28 @@
 
 #include "HX711.h"
 
-HX711 scale(25, 26);
+#define DOUT  25
+#define CLK  26
 
-float calibration_factor = 2230; // this calibration factor is adjusted according to my load cell
+HX711 scale(DOUT, CLK);
+
+float calibration_factor = -96650; // this calibration factor is adjusted according to my load cell
 float units;
 float ounces;
 
 void setup() {
   Serial.begin(9600);
-  Serial.println("HX711 calibration sketch");
+  Serial.println("HX711 Calibration");
   Serial.println("Remove all weight from scale");
   Serial.println("After readings begin, place known weight on scale");
-  Serial.println("Press + or a to increase calibration factor");
-  Serial.println("Press - or z to decrease calibration factor");
+  Serial.println("Press a,s,d,f to increase calibration factor by 10,100,1000,10000 respectively");
+  Serial.println("Press z,x,c,v to decrease calibration factor by 10,100,1000,10000 respectively");
+  Serial.println("Press t for tare");
+//  Serial.println("HX711 calibration sketch");
+//  Serial.println("Remove all weight from scale");
+//  Serial.println("After readings begin, place known weight on scale");
+//  Serial.println("Press + or a to increase calibration factor");
+//  Serial.println("Press - or z to decrease calibration factor");
 
   scale.set_scale();
   scale.tare();  //Reset the scale to 0
@@ -37,14 +46,8 @@ void loop() {
   scale.set_scale(calibration_factor); //Adjust to this calibration factor
 
   Serial.print("Reading: ");
-  units = scale.get_units(), 10;
-  if (units < 0)
-  {
-    units = 0.00;
-  }
-  ounces = units * 0.035274;
-  Serial.print(units);
-  Serial.print(" grams"); 
+  Serial.print(scale.get_units(), 3);
+  Serial.print(" kg"); //Change this to kg and re-adjust the calibration factor if you follow SI units like a sane person
   Serial.print(" calibration_factor: ");
   Serial.print(calibration_factor);
   Serial.println();
@@ -53,8 +56,22 @@ void loop() {
   {
     char temp = Serial.read();
     if(temp == '+' || temp == 'a')
-      calibration_factor += 1;
+      calibration_factor += 10;
     else if(temp == '-' || temp == 'z')
-      calibration_factor -= 1;
+      calibration_factor -= 10;
+    else if(temp == 's')
+      calibration_factor += 100;  
+    else if(temp == 'x')
+      calibration_factor -= 100;  
+    else if(temp == 'd')
+      calibration_factor += 1000;  
+    else if(temp == 'c')
+      calibration_factor -= 1000;
+    else if(temp == 'f')
+      calibration_factor += 10000;  
+    else if(temp == 'v')
+      calibration_factor -= 10000;  
+    else if(temp == 't')
+      scale.tare();  //Reset the scale to zero
   }
 }
